@@ -1,37 +1,73 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkPay0Status } from "@/lib/pay0";
-// Re-use logic. In a real app, refactor logic to service layer.
-// For now, duplicate or keep simple.
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function POST(req: Request) {
     try {
+        // 1. Validates session and order_id
+        const session = await getServerSession(authOptions);
         const { orderId } = await req.json();
 
-        const order = await prisma.order.findUnique({
+        const payment = await prisma.payment.findUnique({
             where: { orderId: orderId },
+            include: { user: true },
         });
 
-        if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 });
+        if (!payment) return NextResponse.json({ error: "Payment not found" }, { status: 404 });
 
-        if (order.status === "SUCCESS") {
-            return NextResponse.json({ status: "SUCCESS", licenseKey: order.licenseKey });
+        if (payment.status === "APPROVED") {
+            return NextResponse.json({ status: "APPROVED", balance: payment.user.walletBalance });
         }
 
-        // Call upstream to check
+        // 2. Calls Pay0 /api/check-order-status to verify payment success
         const pay0Data = await checkPay0Status(orderId);
 
-        // Check if upstream says success but we haven't processed it
-        if (pay0Data.status === "TXN_SUCCESS" || pay0Data.status === "success") {
-            // Trigger verification logic using internal API or direct call
-            // Here we just return the status to frontend so frontend can trigger a refresh or user waits
-            // Ideally, this endpoint would also update the DB like the webhook does.
+        // 3. If status is SUCCESS (or TXN_SUCCESS)
+        if (pay0Data.status === "success" || pay0Data.status === "TXN_SUCCESS") {
+            // Check if already approved (race condition with webhook)
+            const updatedPayment = await prisma.$transaction(async (tx) => {
+                const currentPayment = await tx.payment.findUnique({
+                    where: { id: payment.id }
+                });
 
-            return NextResponse.json({ status: "PAID_WAITING_WEBHOOK" });
+                if (currentPayment?.status === "APPROVED") return currentPayment;
+
+                // - Updates payment status to APPROVED
+                const up = await tx.payment.update({
+                    where: { id: payment.id },
+                    data: {
+                        status: "APPROVED",
+                        utr: pay0Data.utr || pay0Data.data?.utr || null
+                    },
+                });
+
+                // - Increments user's wallet balance
+                await tx.user.update({
+                    where: { id: payment.userId },
+                    data: { walletBalance: { increment: payment.amount } }
+                });
+
+                // - Creates a WalletTransaction log (DEPOSIT)
+                await tx.walletTransaction.create({
+                    data: {
+                        userId: payment.userId,
+                        amount: payment.amount,
+                        type: "DEPOSIT",
+                        remark: `Wallet recharge via Pay0 (${orderId})`
+                    }
+                });
+
+                return up;
+            });
+
+            return NextResponse.json({ status: "APPROVED" });
         }
 
-        return NextResponse.json({ status: order.status });
-    } catch (error) {
-        return NextResponse.json({ error: "Error checking status" }, { status: 500 });
+        return NextResponse.json({ status: payment.status });
+    } catch (error: any) {
+        console.error("Check Status API Error:", error?.message || error);
+        return NextResponse.json({ error: error?.message || "Error checking status" }, { status: 500 });
     }
 }

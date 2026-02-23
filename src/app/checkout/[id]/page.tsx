@@ -4,7 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
+import { notFound } from "next/navigation";
+
 export default function CheckoutPage({ params }: { params: { id: string } }) {
+    const productId = parseInt(params.id);
+
+    if (isNaN(productId)) {
+        notFound();
+    }
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
@@ -21,14 +28,14 @@ export default function CheckoutPage({ params }: { params: { id: string } }) {
 
         try {
             const response = await axios.post("/api/payment/create-order", {
-                productId: parseInt(params.id),
+                productId: productId,
                 customerName: form.name,
                 customerMobile: form.mobile,
             });
 
-            if (response.data.paymentUrl) {
+            if (response.data.payment_url) {
                 // Redirect to Pay0
-                window.location.href = response.data.paymentUrl;
+                window.location.href = response.data.payment_url;
             } else {
                 setError("Failed to get payment URL. Please try again.");
             }

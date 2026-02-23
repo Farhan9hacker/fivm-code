@@ -38,9 +38,18 @@ export default async function Home() {
                         {products.map((product) => (
                             <Link href={`/product/${product.id}`} key={product.id} className="group">
                                 <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-violet-500 transition-all duration-300 hover:shadow-2xl hover:shadow-violet-500/10 transform hover:-translate-y-1">
-                                    <div className="h-48 bg-slate-700 flex items-center justify-center">
-                                        {/* Placeholder Image Logic could go here */}
-                                        <span className="text-4xl">🎮</span>
+                                    <div className="h-48 bg-slate-700 relative overflow-hidden">
+                                        {product.image ? (
+                                            <img
+                                                src={product.image}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="flex items-center justify-center h-full">
+                                                <span className="text-4xl text-slate-500">🎮</span>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="p-6 space-y-3">
                                         <h3 className="text-xl font-bold group-hover:text-violet-400 transition">{product.name}</h3>

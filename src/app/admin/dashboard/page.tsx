@@ -14,9 +14,12 @@ export default function AdminDashboard() {
                 </h1>
                 <div className="flex gap-4 items-center">
                     <span>Welcome, {session?.user?.name}</span>
+                    <Link href="/admin/profile" className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-sm transition">
+                        Profile
+                    </Link>
                     <button
                         onClick={() => signOut({ callbackUrl: "/admin/login" })}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm"
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm transition"
                     >
                         Logout
                     </button>
@@ -37,6 +40,11 @@ export default function AdminDashboard() {
                 <Link href="/admin/orders" className="block p-6 bg-slate-800 rounded-xl hover:bg-slate-750 transition border border-slate-700">
                     <h2 className="text-xl font-bold mb-2">🛒 Orders</h2>
                     <p className="text-slate-400">View transaction history.</p>
+                </Link>
+
+                <Link href="/admin/users" className="block p-6 bg-slate-800 rounded-xl hover:bg-slate-750 transition border border-slate-700">
+                    <h2 className="text-xl font-bold mb-2">👥 Users</h2>
+                    <p className="text-slate-400">View registered users.</p>
                 </Link>
             </div>
 

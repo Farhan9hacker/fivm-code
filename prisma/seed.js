@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client')
+const bcrypt = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
@@ -8,12 +9,16 @@ async function main() {
     // currently does a direct string comparison for simplicity as per setup.
     // If you added bcrypt, you'd hash this here.
 
+    const hashedPassword = await bcrypt.hash(password, 10)
+
     const admin = await prisma.admin.upsert({
         where: { username: 'admin' },
-        update: {},
+        update: {
+            passwordHash: hashedPassword,
+        },
         create: {
             username: 'admin',
-            passwordHash: password,
+            passwordHash: hashedPassword,
         },
     })
 

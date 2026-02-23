@@ -1,26 +1,34 @@
 import axios from "axios";
 
-const PAY0_API_URL = process.env.PAY0_API_URL || "https://pay0.shop/api";
-const PAY0_API_KEY = process.env.PAY0_API_KEY!; // API Key or User Token
+const PAY0_API_URL = "https://pay0.shop/api";
+const PAY0_USER_TOKEN = "07425ebf8a7d5ce54914312dbc075c98";
 
 interface CreateOrderParams {
     customer_mobile: string;
-    customer_name: string;
     amount: number;
-    order_id: string;
+    order_id: string; // Internal Order ID
     redirect_url: string;
-    remark1: string; // productId
-    remark2: string; // internalOrderId (same as order_id usually)
+    remark1: string; // Description
+    remark2: string; // Metadata (e.g. User ID)
 }
 
 export async function createPay0Order(params: CreateOrderParams) {
     try {
-        const payload = {
-            ...params,
-            user_token: PAY0_API_KEY,
-        };
+        const formData = new URLSearchParams();
+        formData.append("user_token", PAY0_USER_TOKEN);
+        formData.append("customer_mobile", params.customer_mobile);
+        formData.append("amount", params.amount.toString());
+        formData.append("order_id", params.order_id);
+        formData.append("redirect_url", params.redirect_url);
+        formData.append("remark1", params.remark1);
+        formData.append("remark2", params.remark2);
 
-        const response = await axios.post(`${PAY0_API_URL}/create-order`, payload);
+        const response = await axios.post(`${PAY0_API_URL}/create-order`, formData, {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        });
+
         return response.data;
     } catch (error: any) {
         console.error("Pay0 Create Order Error:", error.response?.data || error.message);
@@ -30,9 +38,14 @@ export async function createPay0Order(params: CreateOrderParams) {
 
 export async function checkPay0Status(order_id: string) {
     try {
-        const response = await axios.post(`${PAY0_API_URL}/check-order-status`, {
-            order_id,
-            user_token: PAY0_API_KEY,
+        const formData = new URLSearchParams();
+        formData.append("user_token", PAY0_USER_TOKEN);
+        formData.append("order_id", order_id);
+
+        const response = await axios.post(`${PAY0_API_URL}/check-order-status`, formData, {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
         });
         return response.data;
     } catch (error: any) {

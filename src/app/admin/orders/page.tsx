@@ -19,6 +19,7 @@ interface Order {
     createdAt: string;
     user: { mobile: string; name: string | null } | null;
     product: { name: string };
+    licenseKey: string | null;
 }
 
 export default function AdminOrders() {
@@ -50,6 +51,7 @@ export default function AdminOrders() {
                                 <th className="p-4">Customer</th>
                                 <th className="p-4">Product</th>
                                 <th className="p-4">Amount</th>
+                                <th className="p-4">License Code</th>
                                 <th className="p-4">Status</th>
                                 <th className="p-4">Payment</th>
                             </tr>
@@ -77,9 +79,18 @@ export default function AdminOrders() {
                                         <td className="p-4 text-sm">{order.product.name}</td>
                                         <td className="p-4 font-bold text-emerald-400">₹{order.amount}</td>
                                         <td className="p-4">
+                                            {order.licenseKey ? (
+                                                <code className="bg-slate-700 px-2 py-1 rounded text-violet-300 text-xs break-all">
+                                                    {order.licenseKey}
+                                                </code>
+                                            ) : (
+                                                <span className="text-slate-500 text-xs italic">Not delivered</span>
+                                            )}
+                                        </td>
+                                        <td className="p-4">
                                             <span className={`px-2 py-1 rounded text-xs font-bold ${order.status === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                    order.status === 'PENDING' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                        'bg-red-500/20 text-red-400'
+                                                order.status === 'PENDING' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                    'bg-red-500/20 text-red-400'
                                                 }`}>
                                                 {order.status}
                                             </span>

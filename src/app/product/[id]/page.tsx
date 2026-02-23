@@ -3,8 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
+    const productId = parseInt(params.id);
+
+    if (isNaN(productId)) {
+        notFound();
+    }
+
     const product = await prisma.product.findUnique({
-        where: { id: parseInt(params.id) },
+        where: { id: productId },
     });
 
     if (!product) {
@@ -16,8 +22,16 @@ export default async function ProductPage({ params }: { params: { id: string } }
             <div className="max-w-4xl w-full bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700 flex flex-col md:flex-row">
 
                 {/* Visual Side */}
-                <div className="md:w-1/2 bg-slate-700 flex items-center justify-center p-10 min-h-[300px]">
-                    <span className="text-9xl">🎁</span>
+                <div className="md:w-1/2 bg-slate-700 flex items-center justify-center p-10 min-h-[300px] overflow-hidden">
+                    {product.image ? (
+                        <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-cover rounded-xl shadow-2xl"
+                        />
+                    ) : (
+                        <span className="text-9xl animate-pulse">🎁</span>
+                    )}
                 </div>
 
                 {/* Content Side */}

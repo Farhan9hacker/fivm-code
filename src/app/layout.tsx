@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     description: "Digital Activation & License Key Store",
 };
 
+import { Providers } from "@/components/Providers";
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -16,7 +18,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${inter.className} bg-background text-white min-h-screen`}>{children}</body>
+            <body className={`${inter.className} bg-background text-white min-h-screen`}>
+                <Providers>{children}</Providers>
+            </body>
         </html>
     );
 }

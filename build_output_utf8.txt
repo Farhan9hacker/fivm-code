@@ -1,0 +1,61 @@
+﻿
+> primex-store@0.1.0 build
+> next build
+
+   Γû▓ Next.js 14.1.0
+   - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+node.exe : Failed to 
+compile.
+At line:1 char:1
++ & "C:\/node.exe" "C:\
+Users\farha\AppData\Roa
+ming\npm/node_modules/n
+pm ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Failed to com   
+ pile.:String) [],     
+RemoteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+
+./CheckOrderStatusSDK.t
+s:43:13
+Type error: 'error' is 
+of type 'unknown'.
+
+[0m [90m 41 |[39m   
+    [36mreturn[39m re
+sponse[33m.[39mdata[
+33m;[39m[0m
+[0m [90m 42 |[39m   
+  } [36mcatch[39m 
+(error) {[0m
+[0m[31m[1m>[22m[39
+m[90m 43 |[39m       
+[36mthrow[39m error[
+33m.[39mresponse 
+[33m?[39m error[33m.
+[39mresponse[33m.[39
+mdata [33m:[39m error
+[33m.[39mmessage[33m
+;[39m[0m
+[0m [90m    |[39m   
+          [31m[1m^[2
+2m[39m[0m
+[0m [90m 44 |[39m   
+  }[0m
+[0m [90m 45 |[39m   
+}[0m
+[0m [90m 46 |[39m 
+}[0m

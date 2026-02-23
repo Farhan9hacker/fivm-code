@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
@@ -15,12 +15,40 @@ export async function GET(req: Request) {
         }
     });
 
-    // Transform to include stock count based on licenses if needed, 
-    // currently `stock` field is separate in Product model (manual control or sync?)
-    // The schema says `stock Int`. But logical stock is count of unused licenses. 
-    // Let's assume we sync them or just return both.
+    // We return the product but also include a "logicalStock" field for current status
+    const productsWithLogicalStock = products.map(p => ({
+        ...p,
+        logicalStock: p._count.licenses
+    }));
 
-    return NextResponse.json(products);
+    return NextResponse.json(productsWithLogicalStock);
+}
+
+export async function PATCH(req: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    try {
+        const body = await req.json();
+        const { productId, action } = body;
+
+        if (action === "sync_stock") {
+            const count = await prisma.licenseKey.count({
+                where: { productId: productId, isUsed: false }
+            });
+
+            const updatedProduct = await prisma.product.update({
+                where: { id: productId },
+                data: { stock: count }
+            });
+
+            return NextResponse.json(updatedProduct);
+        }
+
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    } catch (error) {
+        return NextResponse.json({ error: "Sync failed" }, { status: 500 });
+    }
 }
 
 export async function POST(req: Request) {
@@ -33,6 +61,7 @@ export async function POST(req: Request) {
             data: {
                 name: body.name,
                 description: body.description,
+                image: body.image || null,
                 price: parseFloat(body.price),
                 stock: parseInt(body.stock),
                 status: body.status ?? true,
